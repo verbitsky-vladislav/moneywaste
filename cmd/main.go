@@ -1,18 +1,13 @@
 package main
 
 import (
-	"log"
-	"moneywaste/package/routes"
-	"net/http"
+	"moneywaste/internal/http"
+	"moneywaste/repository"
 )
 
 func main() {
-	routes.Register()
+	repository.InitDB("postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable")
 
-	log.Println("Сервер запущен и доступен на http://localhost:8080")
-
-	err := http.ListenAndServe(":8080", nil)
-	if err != nil {
-		log.Fatalf("Ошибка запуска сервера: %v", err)
-	}
+	handlers := http.NewHandlers()
+	handlers.RunRouters()
 }
