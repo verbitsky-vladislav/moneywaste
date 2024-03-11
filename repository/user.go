@@ -3,7 +3,6 @@ package repository
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"moneywaste/repository/models"
 )
 
@@ -17,25 +16,15 @@ func NewUser(db *sql.DB) *User {
 	}
 }
 
-func (u *User) CreateUser(user models.UserCreate) {
-	res, err := u.db.Exec(
-		fmt.Sprintf(`"INSERT INTO "User" * VALUES %s, %s"`, user.Nickname, user.Password),
-	)
-	if err != nil {
-		log.Fatal(err)
-		return
+func (u *User) CreateUser(user models.UserCreate) (int, error) {
+	var id int
+	query := fmt.Sprintf(`INSERT INTO "User" (nickname, password) VALUES ('%s', '%s') RETURNING id`, user.Nickname, user.Password)
+
+	row := u.db.QueryRow(query)
+	if err := row.Scan(&id); err != nil {
+		return 0, err
 	}
-	lastId, err := res.LastInsertId()
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-	rowCnt, err := res.RowsAffected()
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-	log.Printf("ID = %d, affected = %d\n", lastId, rowCnt)
+	return id, nil
 }
 
 func (u *User) UpdateUser() {

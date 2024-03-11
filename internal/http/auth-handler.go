@@ -2,30 +2,32 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
+	"moneywaste/internal/controllers/auth"
 	"moneywaste/repository"
-	"net/http"
 )
 
 type AuthHandler struct {
-	userRepository *repository.User
+	authService *auth.Service
 }
 
 func NewAuthHandler(r *repository.User) *AuthHandler {
 	return &AuthHandler{
-		userRepository: r,
+		authService: auth.NewAuthService(r),
 	}
 }
 
 func (a *AuthHandler) authHandlers(rg *gin.RouterGroup) {
-	auth := rg.Group("/auth")
+	authGroup := rg.Group("/auth")
 
-	auth.POST("/sign-in", func(c *gin.Context) {
-		c.JSON(http.StatusOK, "users")
+	authGroup.POST("/sign-in", func(c *gin.Context) {
+		a.authService.SignIn(c)
 	})
-	auth.POST("/sign-up", func(c *gin.Context) {
-		c.JSON(http.StatusOK, "users comments")
+
+	authGroup.POST("/sign-up", func(c *gin.Context) {
+		a.authService.SignUp(c)
 	})
-	auth.POST("/refresh", func(c *gin.Context) {
-		c.JSON(http.StatusOK, "users pictures")
+
+	authGroup.POST("/refresh", func(c *gin.Context) {
+		a.authService.Refresh(c)
 	})
 }
