@@ -6,8 +6,7 @@ import (
 )
 
 type Handlers struct {
-	router *gin.Engine
-
+	router     *gin.Engine
 	userStruct *repository.User
 }
 
@@ -15,6 +14,7 @@ func NewHandlers() *Handlers {
 	db := repository.GetDB()
 
 	return &Handlers{
+		router:     gin.Default(),
 		userStruct: repository.NewUser(db),
 	}
 }
