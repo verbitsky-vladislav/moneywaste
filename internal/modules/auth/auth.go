@@ -1,9 +1,9 @@
 package auth
 
 import (
+	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
-	"strconv"
 	"time"
 )
 
@@ -15,15 +15,17 @@ type Claims struct {
 
 var tokenExpiration time.Duration = 60 * 24 * 90 * time.Minute // 90 days
 
-func createToken(id int) (string, error) {
+func createToken(id string, role string) (string, error) {
 	expirationTime := time.Now().Add(tokenExpiration) // Токен истекает через 90 days
 
 	claims := &Claims{
 		StandardClaims: jwt.StandardClaims{
-			Id:        strconv.Itoa(id),
+			Id:        id,
+			Subject:   role,
 			ExpiresAt: expirationTime.Unix(),
 		},
 	}
+	fmt.Println(claims)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
@@ -35,7 +37,7 @@ func createToken(id int) (string, error) {
 	return tokenString, nil
 }
 
-// Валидация JWT токена
+// ValidateToken Валидация JWT токена
 func ValidateToken(tokenString string) (*Claims, bool) {
 	claims := &Claims{}
 

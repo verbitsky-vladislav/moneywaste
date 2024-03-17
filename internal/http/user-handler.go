@@ -3,7 +3,7 @@ package http
 import (
 	"github.com/gin-gonic/gin"
 	"moneywaste/internal/common/interceptors"
-	"moneywaste/internal/controllers/user"
+	"moneywaste/internal/modules/user"
 	"moneywaste/repository"
 )
 
@@ -20,10 +20,10 @@ func NewUserHandler(r *repository.User) *UserHandler {
 func (u *UserHandler) userHandlers(rg *gin.RouterGroup) {
 	users := rg.Group("/users")
 
-	users.GET("/my", interceptors.AuthInterceptor(), func(c *gin.Context) {
+	users.GET("/my", interceptors.AuthInterceptor("all"), func(c *gin.Context) {
 		u.userService.GetMy(c)
 	})
-	users.POST("/update", interceptors.AuthInterceptor(), func(c *gin.Context) {
+	users.POST("/update", interceptors.AuthInterceptor("all"), func(c *gin.Context) {
 		u.userService.Update(c)
 	})
 

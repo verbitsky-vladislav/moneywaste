@@ -1,11 +1,9 @@
 package user
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"moneywaste/repository"
 	"net/http"
-	"reflect"
 )
 
 type Service struct {
@@ -34,9 +32,6 @@ func (s *Service) GetMy(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(reflect.TypeOf(idStr))
-
-	// Теперь, когда у нас есть id в виде int, мы можем использовать его
 	user, err := s.userRepo.GetUserById(idStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

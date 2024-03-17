@@ -2,7 +2,7 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
-	"moneywaste/internal/controllers/auth"
+	"moneywaste/internal/modules/auth"
 	"moneywaste/repository"
 )
 

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"moneywaste/repository/models"
@@ -17,14 +18,25 @@ func NewUser(db *sql.DB) *User {
 	}
 }
 
-func (u *User) CreateUser(user models.UserCreate) (int, error) {
-	var id int
-	query := fmt.Sprintf(`INSERT INTO "User" (nickname, password) VALUES ('%s', '%s') RETURNING id`, user.Nickname, user.Password)
+func (u *User) CreateUser(user models.User) (string, error) {
+	var id string
 
-	row := u.db.QueryRow(query)
-	if err := row.Scan(&id); err != nil {
-		return 0, err
+	// Проверяем, существует ли уже пользователь с данным email
+	err := u.db.QueryRow(`SELECT id FROM "User" WHERE email = $1`, user.Email).Scan(&id)
+	if err == nil {
+		// Пользователь найден, возвращаем существующий ID
+		return id, nil
+	} else if !errors.Is(sql.ErrNoRows, err) {
+		// Произошла ошибка, отличная от отсутствия записи
+		return "", err
 	}
+
+	// Пользователь не найден, создаем нового
+	err = u.db.QueryRow(`INSERT INTO "User" (fio, email, passwordhash) VALUES ($1, $2, $3) RETURNING id`, user.Fio, user.Email, user.Password).Scan(&id)
+	if err != nil {
+		return "", err
+	}
+
 	return id, nil
 }
 
@@ -32,10 +44,10 @@ func (u *User) UpdateUser() {
 
 }
 
-func (u *User) GetUserByNickname(nickname string) (*models.UserGet, error) {
-	var user models.UserGet
+func (u *User) GetUserByEmail(email string) (*models.User, error) {
+	var user models.User
 
-	query := fmt.Sprintf(`SELECT * FROM "User" WHERE nickname = '%s'`, nickname)
+	query := fmt.Sprintf(`SELECT * FROM "User" WHERE email = '%s'`, email)
 
 	rows, err := u.db.Query(query)
 	if err != nil {
@@ -50,7 +62,7 @@ func (u *User) GetUserByNickname(nickname string) (*models.UserGet, error) {
 		}
 	}(rows)
 	for rows.Next() {
-		err := rows.Scan(&user.Id, &user.Nickname, &user.Password)
+		err := rows.Scan(&user.Id, &user.Fio, &user.Email, &user.Password)
 		if err != nil {
 			log.Fatal(err)
 			return nil, err
@@ -65,8 +77,8 @@ func (u *User) GetUserByNickname(nickname string) (*models.UserGet, error) {
 	return &user, nil
 }
 
-func (u *User) GetUserById(id string) (*models.UserGet, error) {
-	var user models.UserGet
+func (u *User) GetUserById(id string) (*models.User, error) {
+	var user models.User
 
 	query := fmt.Sprintf(`SELECT * FROM "User" WHERE id = '%s'`, id)
 
@@ -83,7 +95,7 @@ func (u *User) GetUserById(id string) (*models.UserGet, error) {
 		}
 	}(rows)
 	for rows.Next() {
-		err := rows.Scan(&user.Id, &user.Nickname, &user.Password)
+		err := rows.Scan(&user.Id, &user.Fio, &user.Email, &user.Password, &user.CreatedAt, &user.UpdatedAt)
 		if err != nil {
 			log.Fatal(err)
 			return nil, err

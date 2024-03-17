@@ -1,12 +1,19 @@
 package interceptors
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
-	"moneywaste/internal/controllers/auth"
+	"moneywaste/internal/modules/auth"
 	"net/http"
 )
 
-func AuthInterceptor() gin.HandlerFunc {
+const (
+	User  string = "user"
+	Admin string = "admin"
+	All   string = "all"
+)
+
+func AuthInterceptor(role string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenString := c.GetHeader("Authorization")
 
@@ -23,6 +30,18 @@ func AuthInterceptor() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+
+		if role != All {
+			if role == claims.Subject {
+				c.Set("id", claims.Id)
+				c.Next()
+			} else {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": fmt.Sprintf("Roles is not matched. Your role is %s, required %s", claims.Subject, role)})
+				c.Abort()
+				return
+			}
+		}
+
 		c.Set("id", claims.Id)
 		c.Next()
 	}
