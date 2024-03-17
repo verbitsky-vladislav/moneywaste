@@ -1,45 +1,77 @@
 package auth
 
 import (
-	"encoding/base64"
-	"fmt"
+	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
+	"strconv"
+	"time"
 )
 
-func createToken() string {
-	return ""
+var jwtKey = []byte("my_secret_key")
+
+type Claims struct {
+	jwt.StandardClaims
 }
 
-func validateToken() bool {
-	return true
-}
+var tokenExpiration time.Duration = 60 * 24 * 90 * time.Minute // 90 days
 
-func refreshToken() {
+func createToken(id int) (string, error) {
+	expirationTime := time.Now().Add(tokenExpiration) // Токен истекает через 90 days
 
-}
+	claims := &Claims{
+		StandardClaims: jwt.StandardClaims{
+			Id:        strconv.Itoa(id),
+			ExpiresAt: expirationTime.Unix(),
+		},
+	}
 
-func hashPassword(password string) (string, error) {
-	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(password), 10 /*cost*/)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	tokenString, err := token.SignedString(jwtKey)
 	if err != nil {
 		return "", err
 	}
 
-	// Encode the entire thing as base64 and return
-	hashBase64 := base64.StdEncoding.EncodeToString(hashedBytes)
-
-	return hashBase64, nil
+	return tokenString, nil
 }
 
-func comparePassword(hashBase64, testPassword string) bool {
+// Валидация JWT токена
+func ValidateToken(tokenString string) (*Claims, bool) {
+	claims := &Claims{}
 
-	// Decode the real hashed and salted password so we can
-	// split out the salt
-	hashBytes, err := base64.StdEncoding.DecodeString(hashBase64)
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		return jwtKey, nil
+	})
+
 	if err != nil {
-		fmt.Println("Error, we were given invalid base64 string", err)
-		return false
+		return nil, false
 	}
 
-	err = bcrypt.CompareHashAndPassword(hashBytes, []byte(testPassword))
-	return err == nil
+	if !token.Valid {
+		return nil, false
+	}
+
+	// Проверяем, не истек ли срок действия токена
+	if time.Now().Unix() > claims.ExpiresAt {
+		return nil, false
+	}
+
+	return claims, true
+}
+
+func hashPassword(password string) (string, error) {
+	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", err
+	}
+	return string(hashedBytes), nil
+}
+
+func comparePassword(hashedPassword, testPassword string) (bool, error) {
+	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(testPassword))
+	if err != nil {
+		return false, err
+	}
+	// Пароли совпадают
+	return true, nil
 }

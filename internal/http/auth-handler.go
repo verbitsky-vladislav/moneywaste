@@ -27,7 +27,7 @@ func (a *AuthHandler) authHandlers(rg *gin.RouterGroup) {
 		a.authService.SignUp(c)
 	})
 
-	authGroup.POST("/refresh", func(c *gin.Context) {
+	authGroup.POST("/refresh/:id", func(c *gin.Context) {
 		a.authService.Refresh(c)
 	})
 }

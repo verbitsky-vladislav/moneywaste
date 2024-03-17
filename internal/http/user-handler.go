@@ -2,28 +2,29 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
+	"moneywaste/internal/common/interceptors"
+	"moneywaste/internal/controllers/user"
 	"moneywaste/repository"
-	"net/http"
 )
 
 type UserHandler struct {
-	userRepository *repository.User
+	userService *user.Service
 }
 
 func NewUserHandler(r *repository.User) *UserHandler {
 	return &UserHandler{
-		userRepository: r,
+		userService: user.NewUserService(r),
 	}
 }
 
-func (h *UserHandler) userHandlers(rg *gin.RouterGroup) {
+func (u *UserHandler) userHandlers(rg *gin.RouterGroup) {
 	users := rg.Group("/users")
 
-	users.GET("/my", func(c *gin.Context) {
-		c.JSON(http.StatusOK, "users")
+	users.GET("/my", interceptors.AuthInterceptor(), func(c *gin.Context) {
+		u.userService.GetMy(c)
 	})
-	users.POST("/update", func(c *gin.Context) {
-		c.JSON(http.StatusOK, "users comments")
+	users.POST("/update", interceptors.AuthInterceptor(), func(c *gin.Context) {
+		u.userService.Update(c)
 	})
 
 }

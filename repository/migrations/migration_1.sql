@@ -1,6 +1,6 @@
 create table "User" (
     id serial primary key,
-    nickname char(255) unique,
-    password char(255)
+    nickname varchar(255) unique,
+    password varchar(255)
 )
 

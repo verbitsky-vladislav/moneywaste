@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"moneywaste/repository/models"
 )
 
@@ -31,6 +32,68 @@ func (u *User) UpdateUser() {
 
 }
 
-func (u *User) GetUser() {
+func (u *User) GetUserByNickname(nickname string) (*models.UserGet, error) {
+	var user models.UserGet
 
+	query := fmt.Sprintf(`SELECT * FROM "User" WHERE nickname = '%s'`, nickname)
+
+	rows, err := u.db.Query(query)
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
+	}(rows)
+	for rows.Next() {
+		err := rows.Scan(&user.Id, &user.Nickname, &user.Password)
+		if err != nil {
+			log.Fatal(err)
+			return nil, err
+		}
+		fmt.Println(user)
+	}
+	err = rows.Err()
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (u *User) GetUserById(id string) (*models.UserGet, error) {
+	var user models.UserGet
+
+	query := fmt.Sprintf(`SELECT * FROM "User" WHERE id = '%s'`, id)
+
+	rows, err := u.db.Query(query)
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
+	}(rows)
+	for rows.Next() {
+		err := rows.Scan(&user.Id, &user.Nickname, &user.Password)
+		if err != nil {
+			log.Fatal(err)
+			return nil, err
+		}
+		fmt.Println(user)
+	}
+	err = rows.Err()
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+	return &user, nil
 }

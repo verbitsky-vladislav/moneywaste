@@ -17,7 +17,10 @@ func NewAuthService(r *repository.User) *Service {
 	}
 }
 
-func (s Service) SignUp(c *gin.Context) {
+// SignUp - зарегистрироваться
+// Закинуть в БД
+// Дать куки
+func (s *Service) SignUp(c *gin.Context) {
 	var input models.UserCreate
 
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -36,13 +39,61 @@ func (s Service) SignUp(c *gin.Context) {
 		return
 	}
 
+	jwt, err := createToken(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.SetCookie("jwt", jwt, 3600, "/", "localhost", false, false)
 	c.JSON(http.StatusOK, id)
 }
 
-func (s Service) SignIn(c *gin.Context) {
+// SignIn - войти
+// Валидирую юзера
+// Закинуть в куки
+func (s *Service) SignIn(c *gin.Context) {
+	var input models.UserCreate
 
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	user, err := s.userRepo.GetUserByNickname(input.Nickname)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	_, err = comparePassword(user.Password, input.Password)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	jwt, err := createToken(user.Id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.SetCookie("jwt", jwt, 3600, "/", "localhost", false, false)
+	c.JSON(http.StatusOK, user.Id)
 }
 
-func (s Service) Refresh(c *gin.Context) {
+// Refresh
+// Просто выдать новый токен
+func (s *Service) Refresh(c *gin.Context) {
+	var id int
 
+	if err := c.ShouldBindUri(&id); err != nil {
+		c.JSON(400, gin.H{"msg": err})
+		return
+	}
+
+	jwt, err := createToken(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.SetCookie("jwt", jwt, 3600, "/", "localhost", false, false)
+	c.JSON(http.StatusOK, id)
 }
