@@ -26,6 +26,8 @@ func InitDB(dataSourceName string) {
 
 		log.Println("Подключение к базе данных успешно установлено")
 	})
+
+	NewTransactionsCategory(instance).Init()
 }
 
 // GetDB возвращает экземпляр подключения к базе данных.

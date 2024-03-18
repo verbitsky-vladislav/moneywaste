@@ -18,7 +18,7 @@ func NewUser(db *sql.DB) *User {
 	}
 }
 
-func (u *User) CreateUser(user models.User) (string, error) {
+func (u *User) Create(user models.User) (string, error) {
 	var id string
 
 	// Проверяем, существует ли уже пользователь с данным email
@@ -40,11 +40,11 @@ func (u *User) CreateUser(user models.User) (string, error) {
 	return id, nil
 }
 
-func (u *User) UpdateUser() {
+func (u *User) Update() {
 
 }
 
-func (u *User) GetUserByEmail(email string) (*models.User, error) {
+func (u *User) GetOneByEmail(email string) (*models.User, error) {
 	var user models.User
 
 	query := fmt.Sprintf(`SELECT * FROM "User" WHERE email = '%s'`, email)
@@ -67,7 +67,6 @@ func (u *User) GetUserByEmail(email string) (*models.User, error) {
 			log.Fatal(err)
 			return nil, err
 		}
-		fmt.Println(user)
 	}
 	err = rows.Err()
 	if err != nil {
@@ -77,7 +76,7 @@ func (u *User) GetUserByEmail(email string) (*models.User, error) {
 	return &user, nil
 }
 
-func (u *User) GetUserById(id string) (*models.User, error) {
+func (u *User) GetOneById(id string) (*models.User, error) {
 	var user models.User
 
 	query := fmt.Sprintf(`SELECT * FROM "User" WHERE id = '%s'`, id)

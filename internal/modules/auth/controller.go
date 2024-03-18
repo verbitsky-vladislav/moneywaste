@@ -19,7 +19,7 @@ func NewAuthService(r *repository.User) *Service {
 		Email:    "admin@gmail.com",
 		Password: "admin",
 	}
-	id, err := r.CreateUser(user)
+	id, err := r.Create(user)
 	if err != nil {
 		log.Fatal("admin user was not created", err)
 	}
@@ -71,7 +71,7 @@ func (s *Service) SignUp(c *gin.Context) {
 		Email:    input.Email,
 		Password: newPass,
 	}
-	id, err := s.userRepo.CreateUser(user)
+	id, err := s.userRepo.Create(user)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -96,7 +96,7 @@ func (s *Service) SignIn(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	user, err := s.userRepo.GetUserByEmail(input.Email)
+	user, err := s.userRepo.GetOneByEmail(input.Email)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

@@ -32,7 +32,7 @@ func (s *Service) GetMy(c *gin.Context) {
 		return
 	}
 
-	user, err := s.userRepo.GetUserById(idStr)
+	user, err := s.userRepo.GetOneById(idStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
